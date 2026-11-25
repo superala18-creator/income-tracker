@@ -1,0 +1,155 @@
+<!doctype html>
+<html lang="zh-Hant">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>收入表（獨立網頁版）</title>
+<style>
+  :root{
+    --bg:#f3f5f4; --surface:#ffffff; --ink:#1c2826; --muted:#5d6b68; --line:#dce3e1;
+    --accent:#1f6f5c; --accent-soft:#e2f0eb; --warn:#b3412a;
+  }
+  @media (prefers-color-scheme: dark){
+    :root{ --bg:#121816; --surface:#1a2220; --ink:#e3eae7; --muted:#94a29e; --line:#2b3633; --accent:#5cc3a5; --accent-soft:#1f3830; --warn:#f08a70; }
+  }
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--bg);color:var(--ink);font-family:-apple-system,"PingFang TC","Microsoft JhengHei",sans-serif;padding:16px;}
+  .wrap{max-width:720px;margin:0 auto;display:flex;flex-direction:column;gap:20px}
+  h1{font-size:1.4rem;margin:8px 0 0}
+  .sub{color:var(--muted);font-size:.85rem;margin:0 0 8px}
+  .card{background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:16px;display:flex;flex-direction:column;gap:12px}
+  label{display:flex;flex-direction:column;gap:4px;font-size:.85rem;color:var(--muted)}
+  input,select{font:inherit;padding:9px 10px;border:1px solid var(--line);border-radius:8px;background:var(--bg);color:var(--ink)}
+  .row{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+  button{font:inherit;cursor:pointer;border:0;border-radius:8px;padding:10px 16px;background:var(--accent);color:#fff;font-weight:600}
+  button:disabled{opacity:.6;cursor:default}
+  #msg{font-size:.85rem;min-height:1.2em;color:var(--muted)}
+  #msg.err{color:var(--warn)}
+  table{width:100%;border-collapse:collapse;font-size:.88rem}
+  th,td{padding:6px 4px;border-bottom:1px solid var(--line);text-align:left}
+  th{color:var(--muted);font-weight:500;font-size:.78rem}
+  td.num{text-align:right;font-variant-numeric:tabular-nums}
+  .empty{color:var(--muted);text-align:center;padding:20px;font-size:.9rem}
+  .badge{display:inline-block;background:var(--accent-soft);color:var(--accent);border-radius:999px;padding:2px 8px;font-size:.78rem}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div>
+    <h1>收入表（獨立網頁版）</h1>
+    <p class="sub">這個頁面不經過 Claude，直接用 <span class="badge">fetch</span> 呼叫 Google Apps Script，讀寫同一份 Google 試算表。</p>
+  </div>
+
+  <div class="card">
+    <strong>記一筆</strong>
+    <label>日期<input type="date" id="date"></label>
+    <label>品項
+      <select id="item">
+        <option>HA</option>
+        <option>i Series</option>
+        <option>SPC</option>
+      </select>
+    </label>
+    <div class="row">
+      <label>數量<input type="number" id="qty" min="1" value="1"></label>
+      <label>購買人<input type="text" id="buyer" placeholder="姓名或公司"></label>
+    </div>
+    <label>金額<input type="number" id="amount" min="0" placeholder="0"></label>
+    <button id="saveBtn">新增</button>
+    <div id="msg"></div>
+  </div>
+
+  <div class="card">
+    <strong>明細（即時從 Google 試算表讀出）</strong>
+    <div id="list"><div class="empty">讀取中…</div></div>
+  </div>
+</div>
+
+<script>
+const API_URL = "https://script.google.com/macros/s/AKfycby24m-KIIzyja1Po_B_APBoDFQglmM0iXsLHeEn21hKpJCZsMis2lPvfPLxsX3ePnNR5g/exec";
+
+const $ = (id) => document.getElementById(id);
+const today = () => new Date().toISOString().slice(0, 10);
+$("date").value = today();
+
+function setMsg(text, isErr) {
+  $("msg").textContent = text;
+  $("msg").className = isErr ? "err" : "";
+}
+
+function fmt(n) {
+  const v = Number(n) || 0;
+  return Math.round(v).toLocaleString("zh-TW");
+}
+
+async function loadList() {
+  try {
+    const res = await fetch(API_URL, { method: "GET" });
+    const rows = await res.json();
+    renderList(rows);
+  } catch (err) {
+    $("list").innerHTML = '<div class="empty">讀取失敗，請確認網路連線或稍後再試。</div>';
+  }
+}
+
+function renderList(rows) {
+  const box = $("list");
+  if (!rows || !rows.length) {
+    box.innerHTML = '<div class="empty">目前還沒有紀錄，記一筆看看吧。</div>';
+    return;
+  }
+  const sorted = [...rows].sort((a, b) => String(b.日期).localeCompare(String(a.日期)));
+  let html = "<table><tr><th>日期</th><th>品項</th><th>數量</th><th>購買人</th><th>金額</th></tr>";
+  for (const r of sorted) {
+    html += `<tr><td>${esc(r.日期)}</td><td>${esc(r.品項)}</td><td class="num">${esc(r.數量)}</td><td>${esc(r.購買人)}</td><td class="num">${fmt(r.金額)}</td></tr>`;
+  }
+  html += "</table>";
+  box.innerHTML = html;
+}
+
+function esc(v) {
+  return String(v ?? "").replace(/[&<>"']/g, (c) => ({
+    "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;"
+  }[c]));
+}
+
+$("saveBtn").addEventListener("click", async () => {
+  const date = $("date").value;
+  const item = $("item").value;
+  const qty = Number($("qty").value);
+  const buyer = $("buyer").value.trim();
+  const amount = Number($("amount").value);
+
+  if (!date) return setMsg("請選擇日期", true);
+  if (!(qty > 0)) return setMsg("數量要大於 0", true);
+  if (!buyer) return setMsg("請填寫購買人", true);
+  if (!(amount > 0)) return setMsg("請輸入金額", true);
+
+  $("saveBtn").disabled = true;
+  setMsg("送出中…");
+  try {
+    const res = await fetch(API_URL, {
+      method: "POST",
+      headers: { "Content-Type": "text/plain;charset=utf-8" },
+      body: JSON.stringify({ date, item, qty, buyer, amount })
+    });
+    const data = await res.json();
+    if (data.status === "ok") {
+      setMsg("已新增！");
+      $("buyer").value = "";
+      $("amount").value = "";
+      loadList();
+    } else {
+      setMsg("儲存失敗：" + (data.message || "未知錯誤"), true);
+    }
+  } catch (err) {
+    setMsg("連線失敗，請稍後再試。", true);
+  } finally {
+    $("saveBtn").disabled = false;
+  }
+});
+
+loadList();
+</script>
+</body>
+</html>
