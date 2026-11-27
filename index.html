@@ -9,19 +9,19 @@
 <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;500;700;900&display=swap" rel="stylesheet">
 <style>
   :root{
-    --bg:#f0f3f2; --surface:#ffffff; --surface2:#f7f9f8; --ink:#1c2826; --muted:#687873; --line:#e1e7e4;
-    --accent:#1f8f6c; --accent2:#17b88a; --accent-soft:#deefe8; --warn:#d6492f; --warn-soft:#fbe6e1;
-    --c-ha:#2e7fd1; --c-is:#d98c15; --c-spc:#8a55d6;
-    --shadow:0 1px 2px rgba(20,30,28,.04), 0 6px 20px -8px rgba(20,30,28,.12);
-    --shadow-sm:0 1px 3px rgba(20,30,28,.08);
+    --bg:#eaf6fb; --surface:#ffffff; --surface2:#f3fbfd; --ink:#0b3a52; --muted:#5a8aa0; --line:#cfe9f2;
+    --accent:#0ea5c7; --accent2:#06b6d4; --accent-soft:#d7f1f8; --warn:#e2693a; --warn-soft:#fde7dd;
+    --c-ha:#2e86d1; --c-is:#e0a528; --c-spc:#7e5fd9; --accent-ink:#ffffff;
+    --shadow:0 1px 2px rgba(10,60,80,.05), 0 6px 20px -8px rgba(10,60,80,.14);
+    --shadow-sm:0 1px 3px rgba(10,60,80,.09);
     --ease:cubic-bezier(.22,1,.36,1);
   }
   @media (prefers-color-scheme: dark){
-    :root{ --bg:#101514; --surface:#1a2120; --surface2:#202826; --ink:#eaf1ee; --muted:#93a39d; --line:#2a3432;
-      --accent:#4fd1a5; --accent2:#3bbd91; --accent-soft:#17352c; --warn:#ff9478; --warn-soft:#3a211c;
-      --c-ha:#6bb0f2; --c-is:#f0ad53; --c-spc:#b592ef; color-scheme: dark;
-      --shadow:0 1px 2px rgba(0,0,0,.3), 0 10px 24px -10px rgba(0,0,0,.55);
-      --shadow-sm:0 1px 3px rgba(0,0,0,.35);
+    :root{ --bg:#145c82; --surface:#1a6e97; --surface2:#1f7aa3; --ink:#f3fbfd; --muted:#c3e6f2; --line:#2c86ad;
+      --accent:#5eeaff; --accent2:#38d6ef; --accent-soft:#0f4f70; --warn:#ffb084; --warn-soft:#5a3020;
+      --c-ha:#9ed4ff; --c-is:#ffd27a; --c-spc:#d6bbff; --accent-ink:#06324a; color-scheme: dark;
+      --shadow:0 1px 2px rgba(0,0,0,.25), 0 10px 24px -10px rgba(0,0,0,.45);
+      --shadow-sm:0 1px 3px rgba(0,0,0,.3);
     }
   }
   *{box-sizing:border-box}
@@ -40,7 +40,7 @@
   .row{display:grid;grid-template-columns:1fr 1fr;gap:10px;min-width:0}
   .row label{min-width:0}
   .row input{min-width:0;width:100%}
-  button{font:inherit;cursor:pointer;border:0;border-radius:10px;padding:11px 18px;background:var(--accent);color:#fff;font-weight:700;transition:transform .12s var(--ease), box-shadow .12s var(--ease), background .15s var(--ease), opacity .12s var(--ease)}
+  button{font:inherit;cursor:pointer;border:0;border-radius:10px;padding:11px 18px;background:var(--accent);color:var(--accent-ink);font-weight:700;transition:transform .12s var(--ease), box-shadow .12s var(--ease), background .15s var(--ease), opacity .12s var(--ease)}
   button:hover{background:var(--accent2)}
   button:active{transform:scale(.96)}
   button.ghost{background:var(--surface2);color:var(--ink);border:1px solid var(--line)}
@@ -51,7 +51,7 @@
   .row-actions button{padding:6px 11px;font-size:.76rem;font-weight:600;border-radius:8px}
   .row-actions button.edit{background:var(--surface2);color:var(--ink);border:1px solid var(--line)}
   .row-actions button.del{background:var(--surface2);color:var(--warn);border:1px solid var(--line)}
-  .row-actions button.del.confirm{background:var(--warn);color:#fff;border-color:var(--warn)}
+  .row-actions button.del.confirm{background:var(--warn);color:var(--accent-ink);border-color:var(--warn)}
   #msg,#xlMsg{font-size:.82rem;min-height:1.2em;color:var(--muted);transition:color .15s}
   #msg.err,#xlMsg.err{color:var(--warn);font-weight:600}
   table{width:100%;border-collapse:collapse;font-size:.85rem}
@@ -187,7 +187,6 @@
     <div id="list"><div class="empty"><span class="spinner"></span>讀取中…</div></div>
   </div>
 </div>
-
 <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
 <script>
 // 換成你自己部署的 Apps Script 網頁應用程式網址
@@ -214,142 +213,142 @@ const state = { rows: [], month: today().slice(0, 7), chartUnit: "month", editId
 $("date").value = today();
 
 function setMsg(text, isErr) {
-$("msg").textContent = text;
-$("msg").className = isErr ? "err" : "";
+  $("msg").textContent = text;
+  $("msg").className = isErr ? "err" : "";
 }
 function setXlMsg(text, isErr) {
-$("xlMsg").textContent = text;
-$("xlMsg").className = isErr ? "err" : "";
+  $("xlMsg").textContent = text;
+  $("xlMsg").className = isErr ? "err" : "";
 }
 
 function itemColor(k) {
-const it = ITEMS.find(i => i.k === k);
-return it ? it.c : "var(--muted)";
+  const it = ITEMS.find(i => i.k === k);
+  return it ? it.c : "var(--muted)";
 }
 
 async function loadList() {
-try {
-const res = await fetch(API_URL, { method: "GET" });
-const rows = await res.json();
-state.rows = (rows || []).filter(r => r && r.日期 && typeof r.獎金 !== "undefined");
-render();
-} catch (err) {
-$("list").innerHTML = '<div class="empty"><span class="ic">⚠️</span>讀取失敗，請確認網路連線或稍後再試。</div>';
-}
+  try {
+    const res = await fetch(API_URL, { method: "GET" });
+    const rows = await res.json();
+    state.rows = (rows || []).filter(r => r && r.日期 && typeof r.獎金 !== "undefined");
+    render();
+  } catch (err) {
+    $("list").innerHTML = '<div class="empty"><span class="ic">⚠️</span>讀取失敗，請確認網路連線或稍後再試。</div>';
+  }
 }
 
 function render() {
-renderList();
-renderStats();
+  renderList();
+  renderStats();
 }
 
 function renderList() {
-const box = $("list");
-if (!state.rows.length) {
-box.innerHTML = '<div class="empty"><span class="ic">🧾</span>目前還沒有紀錄，記一筆看看吧。</div>';
-return;
-}
-const sorted = state.rows
-.map((r, i) => ({ r, i }))
-.sort((a, b) => String(b.r.日期).localeCompare(String(a.r.日期)) || (b.i - a.i))
-.map(x => x.r);
-let html = '<div class="entries">';
-for (const r of sorted) {
-html += `<div class="entry" style="animation-delay:${Math.min(sorted.indexOf(r), 10) * 25}ms">
-<span class="dot" style="background:${itemColor(r.品項)}"></span>
-<div class="entry-main">
-<div class="entry-top"><span class="entry-item">${esc(r.品項)}</span><span class="entry-date">${md(r.日期)}</span></div>
-<div class="entry-sub">${esc(r.購買人)} · ${esc(r.數量)} 件</div>
-</div>
-<div class="entry-amt">獎金 ${fmt(r.獎金)}<br>收款 ${fmt(r.收款金額)}</div>
-<div class="entry-actions row-actions">
-<button class="edit" data-edit="${esc(r.ID)}">編輯</button>
-<button class="del" data-del="${esc(r.ID)}">刪除</button>
-</div>
-</div>`;
-}
-html += "</div>";
-box.innerHTML = html;
+  const box = $("list");
+  if (!state.rows.length) {
+    box.innerHTML = '<div class="empty"><span class="ic">🧾</span>目前還沒有紀錄，記一筆看看吧。</div>';
+    return;
+  }
+  const sorted = state.rows
+    .map((r, i) => ({ r, i }))
+    .sort((a, b) => String(b.r.日期).localeCompare(String(a.r.日期)) || (b.i - a.i))
+    .map(x => x.r);
+  let html = '<div class="entries">';
+  for (const r of sorted) {
+    html += `<div class="entry" style="animation-delay:${Math.min(sorted.indexOf(r), 10) * 25}ms">
+      <span class="dot" style="background:${itemColor(r.品項)}"></span>
+      <div class="entry-main">
+        <div class="entry-top"><span class="entry-item">${esc(r.品項)}</span><span class="entry-date">${md(r.日期)}</span></div>
+        <div class="entry-sub">${esc(r.購買人)} · ${esc(r.數量)} 件</div>
+      </div>
+      <div class="entry-amt">獎金 ${fmt(r.獎金)}<br>收款 ${fmt(r.收款金額)}</div>
+      <div class="entry-actions row-actions">
+        <button class="edit" data-edit="${esc(r.ID)}">編輯</button>
+        <button class="del" data-del="${esc(r.ID)}">刪除</button>
+      </div>
+    </div>`;
+  }
+  html += "</div>";
+  box.innerHTML = html;
 
-box.querySelectorAll("[data-edit]").forEach(btn => {
-btn.addEventListener("click", () => startEdit(btn.dataset.edit));
-});
-box.querySelectorAll("[data-del]").forEach(btn => {
-btn.addEventListener("click", () => handleDeleteClick(btn));
-});
+  box.querySelectorAll("[data-edit]").forEach(btn => {
+    btn.addEventListener("click", () => startEdit(btn.dataset.edit));
+  });
+  box.querySelectorAll("[data-del]").forEach(btn => {
+    btn.addEventListener("click", () => handleDeleteClick(btn));
+  });
 }
 
 function startEdit(id) {
-const r = state.rows.find(x => String(x.ID) === String(id));
-if (!r) return;
-state.editId = id;
-$("date").value = r.日期;
-$("item").value = r.品項;
-$("qty").value = r.數量;
-$("buyer").value = r.購買人;
-$("amount").value = r.獎金;
-$("received").value = r.收款金額;
-$("saveBtn").textContent = "更新";
-$("cancelEditBtn").style.display = "";
-setMsg("編輯中：改完按「更新」送出，或按「取消編輯」放棄。");
-$("saveBtn").scrollIntoView({ behavior: "smooth", block: "center" });
+  const r = state.rows.find(x => String(x.ID) === String(id));
+  if (!r) return;
+  state.editId = id;
+  $("date").value = r.日期;
+  $("item").value = r.品項;
+  $("qty").value = r.數量;
+  $("buyer").value = r.購買人;
+  $("amount").value = r.獎金;
+  $("received").value = r.收款金額;
+  $("saveBtn").textContent = "更新";
+  $("cancelEditBtn").style.display = "";
+  setMsg("編輯中：改完按「更新」送出，或按「取消編輯」放棄。");
+  $("saveBtn").scrollIntoView({ behavior: "smooth", block: "center" });
 }
 
 function cancelEdit() {
-state.editId = null;
-$("date").value = today();
-$("item").selectedIndex = 0;
-$("qty").value = 1;
-$("buyer").value = "";
-$("amount").value = "";
-$("received").value = "";
-$("saveBtn").textContent = "新增";
-$("cancelEditBtn").style.display = "none";
-setMsg("");
+  state.editId = null;
+  $("date").value = today();
+  $("item").selectedIndex = 0;
+  $("qty").value = 1;
+  $("buyer").value = "";
+  $("amount").value = "";
+  $("received").value = "";
+  $("saveBtn").textContent = "新增";
+  $("cancelEditBtn").style.display = "none";
+  setMsg("");
 }
 $("cancelEditBtn").addEventListener("click", cancelEdit);
 
 async function handleDeleteClick(btn) {
-if (!btn.classList.contains("confirm")) {
-box_resetConfirm();
-btn.classList.add("confirm");
-btn.textContent = "確定刪除？";
-return;
-}
-const id = btn.dataset.del;
-btn.disabled = true;
-btn.textContent = "刪除中…";
-try {
-const res = await fetch(API_URL, {
-method: "POST",
-headers: { "Content-Type": "text/plain;charset=utf-8" },
-body: JSON.stringify({ action: "delete", id })
-});
-const data = await res.json();
-if (data.status === "ok") {
-if (state.editId === id) cancelEdit();
-loadList();
-} else {
-setMsg("刪除失敗：" + (data.message || "未知錯誤"), true);
-btn.disabled = false;
-btn.textContent = "刪除";
-btn.classList.remove("confirm");
-}
-} catch (err) {
-setMsg("連線失敗，請稍後再試。", true);
-btn.disabled = false;
-btn.textContent = "刪除";
-btn.classList.remove("confirm");
-}
+  if (!btn.classList.contains("confirm")) {
+    box_resetConfirm();
+    btn.classList.add("confirm");
+    btn.textContent = "確定刪除？";
+    return;
+  }
+  const id = btn.dataset.del;
+  btn.disabled = true;
+  btn.textContent = "刪除中…";
+  try {
+    const res = await fetch(API_URL, {
+      method: "POST",
+      headers: { "Content-Type": "text/plain;charset=utf-8" },
+      body: JSON.stringify({ action: "delete", id })
+    });
+    const data = await res.json();
+    if (data.status === "ok") {
+      if (state.editId === id) cancelEdit();
+      loadList();
+    } else {
+      setMsg("刪除失敗：" + (data.message || "未知錯誤"), true);
+      btn.disabled = false;
+      btn.textContent = "刪除";
+      btn.classList.remove("confirm");
+    }
+  } catch (err) {
+    setMsg("連線失敗，請稍後再試。", true);
+    btn.disabled = false;
+    btn.textContent = "刪除";
+    btn.classList.remove("confirm");
+  }
 }
 function box_resetConfirm() {
-$("list").querySelectorAll("button.del.confirm").forEach(b => { b.classList.remove("confirm"); b.textContent = "刪除"; });
+  $("list").querySelectorAll("button.del.confirm").forEach(b => { b.classList.remove("confirm"); b.textContent = "刪除"; });
 }
 
 function esc(v) {
-return String(v ?? "").replace(/[&<>"']/g, (c) => ({
-"&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;"
-}[c]));
+  return String(v ?? "").replace(/[&<>"']/g, (c) => ({
+    "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;"
+  }[c]));
 }
 
 function el(tag, cls, text) { const e = document.createElement(tag); if (cls) e.className = cls; if (text != null) e.textContent = text; return e; }
@@ -357,115 +356,115 @@ function headRow(tbl, cols) { const tr = el("tr"); for (const c of cols) tr.appe
 function dataRow(tbl, cells, cls) { const tr = el("tr", cls); cells.forEach((c, i) => tr.appendChild(el("td", i ? "num" : null, c))); tbl.appendChild(tr); }
 
 function shiftMonth(k) {
-const [y, m] = state.month.split("-").map(Number);
-const d = new Date(y, m - 1 + k, 1);
-state.month = d.getFullYear() + "-" + pad(d.getMonth() + 1);
-renderStats();
+  const [y, m] = state.month.split("-").map(Number);
+  const d = new Date(y, m - 1 + k, 1);
+  state.month = d.getFullYear() + "-" + pad(d.getMonth() + 1);
+  renderStats();
 }
 $("prevM").addEventListener("click", () => shiftMonth(-1));
 $("nextM").addEventListener("click", () => shiftMonth(1));
 $("cWeek").addEventListener("click", () => { state.chartUnit = "week"; renderChart(); });
 $("cMonth").addEventListener("click", () => { state.chartUnit = "month"; renderChart(); });
-
 function renderStats() {
-const [y, m] = state.month.split("-");
-$("monthLabel").textContent = y + " 年 " + Number(m) + " 月";
-const mine = state.rows.filter(r => r.日期.startsWith(state.month));
+  const [y, m] = state.month.split("-");
+  $("monthLabel").textContent = y + " 年 " + Number(m) + " 月";
+  const mine = state.rows.filter(r => r.日期.startsWith(state.month));
 
-$("sAmt").textContent = fmt(sum(mine));
-$("sRecv").textContent = fmt(sum(mine, "收款金額"));
-$("sQty").textContent = fmt(sum(mine, "數量"));
-$("sCnt").textContent = mine.length;
+  $("sAmt").textContent = fmt(sum(mine));
+  $("sRecv").textContent = fmt(sum(mine, "收款金額"));
+  $("sQty").textContent = fmt(sum(mine, "數量"));
+  $("sCnt").textContent = mine.length;
 
-const cols = ["", ...ITEMS.map(i => i.k), "合計"];
+  const cols = ["", ...ITEMS.map(i => i.k), "合計"];
 
-// 週統計
-const wt = $("weekTbl"); wt.textContent = "";
-headRow(wt, [{ label: "週（一～日）" }, ...ITEMS.map(() => ({ label: "", num: true })).map((_, i) => ({ label: ITEMS[i].k, num: true })), { label: "合計", num: true }]);
-const first = state.month + "-01";
-const lastD = new Date(Number(y), Number(m), 0);
-const last = ymd(lastD);
-const curW = weekStart(today());
-for (let w = weekStart(first); w <= last; w = addDays(w, 7)) {
-const e = addDays(w, 6);
-const rs = state.rows.filter(r => r.日期 >= w && r.日期 <= e);
-dataRow(wt, [md(w) + "–" + md(e), ...ITEMS.map(it => fmt(sum(rs.filter(r => r.品項 === it.k)))), fmt(sum(rs))], w === curW ? "cur" : null);
+  // 週統計
+  const wt = $("weekTbl"); wt.textContent = "";
+  headRow(wt, [{ label: "週（一～日）" }, ...ITEMS.map(() => ({ label: "", num: true })).map((_, i) => ({ label: ITEMS[i].k, num: true })), { label: "合計", num: true }]);
+  const first = state.month + "-01";
+  const lastD = new Date(Number(y), Number(m), 0);
+  const last = ymd(lastD);
+  const curW = weekStart(today());
+  for (let w = weekStart(first); w <= last; w = addDays(w, 7)) {
+    const e = addDays(w, 6);
+    const rs = state.rows.filter(r => r.日期 >= w && r.日期 <= e);
+    dataRow(wt, [md(w) + "–" + md(e), ...ITEMS.map(it => fmt(sum(rs.filter(r => r.品項 === it.k)))), fmt(sum(rs))], w === curW ? "cur" : null);
+  }
+
+  // 月統計（近 6 個月）
+  const mt = $("monthTbl"); mt.textContent = "";
+  headRow(mt, [{ label: "月份" }, ...ITEMS.map(it => ({ label: it.k, num: true })), { label: "合計", num: true }]);
+  const [yy, mm] = state.month.split("-").map(Number);
+  const months = [];
+  for (let i = 5; i >= 0; i--) { const d = new Date(yy, mm - 1 - i, 1); months.push(d.getFullYear() + "-" + pad(d.getMonth() + 1)); }
+  for (const mo of months) {
+    const rs = state.rows.filter(r => r.日期.startsWith(mo));
+    dataRow(mt, [mo.replace("-", "/"), ...ITEMS.map(it => fmt(sum(rs.filter(r => r.品項 === it.k)))), fmt(sum(rs))], mo === state.month ? "cur" : null);
+  }
+  const six = state.rows.filter(r => r.日期 >= months[0] + "-01" && r.日期 <= last);
+  dataRow(mt, ["6 個月合計", ...ITEMS.map(it => fmt(sum(six.filter(r => r.品項 === it.k)))), fmt(sum(six))], "total");
+
+  renderChart();
 }
 
-// 月統計（近 6 個月）
-const mt = $("monthTbl"); mt.textContent = "";
-headRow(mt, [{ label: "月份" }, ...ITEMS.map(it => ({ label: it.k, num: true })), { label: "合計", num: true }]);
-const [yy, mm] = state.month.split("-").map(Number);
-const months = [];
-for (let i = 5; i >= 0; i--) { const d = new Date(yy, mm - 1 - i, 1); months.push(d.getFullYear() + "-" + pad(d.getMonth() + 1)); }
-for (const mo of months) {
-const rs = state.rows.filter(r => r.日期.startsWith(mo));
-dataRow(mt, [mo.replace("-", "/"), ...ITEMS.map(it => fmt(sum(rs.filter(r => r.品項 === it.k)))), fmt(sum(rs))], mo === state.month ? "cur" : null);
-}
-const six = state.rows.filter(r => r.日期 >= months[0] + "-01" && r.日期 <= last);
-dataRow(mt, ["6 個月合計", ...ITEMS.map(it => fmt(sum(six.filter(r => r.品項 === it.k)))), fmt(sum(six))], "total");
-
-renderChart();
-}
 function renderChart() {
-$("cWeek").setAttribute("aria-pressed", String(state.chartUnit === "week"));
-$("cMonth").setAttribute("aria-pressed", String(state.chartUnit === "month"));
-const lg = $("legend"); lg.textContent = "";
-for (const it of ITEMS) { const s = el("span"); const i = el("i"); i.style.background = it.c; s.append(i, it.k); lg.appendChild(s); }
-const st = el("span"); const di = el("i", "dash"); st.append(di, "合計"); lg.appendChild(st);
+  $("cWeek").setAttribute("aria-pressed", String(state.chartUnit === "week"));
+  $("cMonth").setAttribute("aria-pressed", String(state.chartUnit === "month"));
+  const lg = $("legend"); lg.textContent = "";
+  for (const it of ITEMS) { const s = el("span"); const i = el("i"); i.style.background = it.c; s.append(i, it.k); lg.appendChild(s); }
+  const st = el("span"); const di = el("i", "dash"); st.append(di, "合計"); lg.appendChild(st);
 
-const [yy, mm] = state.month.split("-").map(Number);
-const B = [];
-if (state.chartUnit === "month") {
-for (let i = 11; i >= 0; i--) { const d = new Date(yy, mm - 1 - i, 1); const k = d.getFullYear() + "-" + pad(d.getMonth() + 1); B.push({ label: (d.getMonth() + 1) + "月", test: r => r.日期.startsWith(k) }); }
-} else {
-const endRef = state.month === today().slice(0, 7) ? today() : ymd(new Date(yy, mm, 0));
-let w = addDays(weekStart(endRef), -77);
-for (let i = 0; i < 12; i++) { const s = w, e = addDays(w, 6); B.push({ label: md(s), test: r => r.日期 >= s && r.日期 <= e }); w = addDays(w, 7); }
-}
-const series = ITEMS.map(it => ({ it, vals: B.map(b => sum(state.rows.filter(r => r.品項 === it.k && b.test(r)))) }));
-const totals = B.map((b, i) => series.reduce((s, se) => s + se.vals[i], 0));
+  const [yy, mm] = state.month.split("-").map(Number);
+  const B = [];
+  if (state.chartUnit === "month") {
+    for (let i = 11; i >= 0; i--) { const d = new Date(yy, mm - 1 - i, 1); const k = d.getFullYear() + "-" + pad(d.getMonth() + 1); B.push({ label: (d.getMonth() + 1) + "月", test: r => r.日期.startsWith(k) }); }
+  } else {
+    const endRef = state.month === today().slice(0, 7) ? today() : ymd(new Date(yy, mm, 0));
+    let w = addDays(weekStart(endRef), -77);
+    for (let i = 0; i < 12; i++) { const s = w, e = addDays(w, 6); B.push({ label: md(s), test: r => r.日期 >= s && r.日期 <= e }); w = addDays(w, 7); }
+  }
+  const series = ITEMS.map(it => ({ it, vals: B.map(b => sum(state.rows.filter(r => r.品項 === it.k && b.test(r)))) }));
+  const totals = B.map((b, i) => series.reduce((s, se) => s + se.vals[i], 0));
 
-const W = 680, H = 240, L = 58, R = 14, T = 14, Bt = 30;
-const pw = W - L - R, ph = H - T - Bt;
-const raw = Math.max(1, ...totals);
-const step = niceStep(raw / 4);
-const top = Math.ceil(raw / step) * step;
-const x = (i) => L + (B.length === 1 ? pw / 2 : i * pw / (B.length - 1));
-const y = (v) => T + ph - (v / top * ph);
+  const W = 680, H = 240, L = 58, R = 14, T = 14, Bt = 30;
+  const pw = W - L - R, ph = H - T - Bt;
+  const raw = Math.max(1, ...totals);
+  const step = niceStep(raw / 4);
+  const top = Math.ceil(raw / step) * step;
+  const x = (i) => L + (B.length === 1 ? pw / 2 : i * pw / (B.length - 1));
+  const y = (v) => T + ph - (v / top * ph);
 
-const NS = "http://www.w3.org/2000/svg";
-const svg = document.createElementNS(NS, "svg");
-svg.setAttribute("viewBox", "0 0 " + W + " " + H);
-svg.setAttribute("class", "chart");
-svg.setAttribute("role", "img");
-svg.setAttribute("aria-label", "各品項獎金曲線圖");
-const mk = (t, a) => { const e = document.createElementNS(NS, t); for (const k in a) e.setAttribute(k, a[k]); svg.appendChild(e); return e; };
+  const NS = "http://www.w3.org/2000/svg";
+  const svg = document.createElementNS(NS, "svg");
+  svg.setAttribute("viewBox", "0 0 " + W + " " + H);
+  svg.setAttribute("class", "chart");
+  svg.setAttribute("role", "img");
+  svg.setAttribute("aria-label", "各品項獎金曲線圖");
+  const mk = (t, a) => { const e = document.createElementNS(NS, t); for (const k in a) e.setAttribute(k, a[k]); svg.appendChild(e); return e; };
 
-for (let v = 0; v <= top + 1e-9; v += step) {
-mk("line", { x1: L, x2: W - R, y1: y(v), y2: y(v), stroke: "var(--line)", "stroke-width": 1 });
-const t = mk("text", { x: L - 8, y: y(v) + 4, "text-anchor": "end" });
-t.textContent = short(v);
-}
-const every = B.length > 8 ? 2 : 1;
-B.forEach((b, i) => {
-if (i % every && i !== B.length - 1) return;
-const t = mk("text", { x: x(i), y: H - 10, "text-anchor": "middle" });
-t.textContent = b.label;
-});
-const path = (vals) => vals.map((v, i) => (i ? "L" : "M") + x(i).toFixed(1) + " " + y(v).toFixed(1)).join(" ");
-mk("path", { d: path(totals), fill: "none", stroke: "var(--muted)", "stroke-width": 1.5, "stroke-dasharray": "4 4" });
-for (const se of series) {
-mk("path", { d: path(se.vals), fill: "none", stroke: se.it.c, "stroke-width": 2.5, "stroke-linejoin": "round", "stroke-linecap": "round" });
-se.vals.forEach((v, i) => {
-const isLast = i === se.vals.length - 1;
-const c = mk("circle", { cx: x(i), cy: y(v), r: isLast ? 4.5 : 3, fill: isLast ? se.it.c : "var(--surface)", stroke: se.it.c, "stroke-width": 2 });
-const tt = document.createElementNS(NS, "title");
-tt.textContent = se.it.k + "　" + B[i].label + "：NT$" + fmt(v);
-c.appendChild(tt);
-});
-}
-const box = $("chart"); box.textContent = ""; box.appendChild(svg);
+  for (let v = 0; v <= top + 1e-9; v += step) {
+    mk("line", { x1: L, x2: W - R, y1: y(v), y2: y(v), stroke: "var(--line)", "stroke-width": 1 });
+    const t = mk("text", { x: L - 8, y: y(v) + 4, "text-anchor": "end" });
+    t.textContent = short(v);
+  }
+  const every = B.length > 8 ? 2 : 1;
+  B.forEach((b, i) => {
+    if (i % every && i !== B.length - 1) return;
+    const t = mk("text", { x: x(i), y: H - 10, "text-anchor": "middle" });
+    t.textContent = b.label;
+  });
+  const path = (vals) => vals.map((v, i) => (i ? "L" : "M") + x(i).toFixed(1) + " " + y(v).toFixed(1)).join(" ");
+  mk("path", { d: path(totals), fill: "none", stroke: "var(--muted)", "stroke-width": 1.5, "stroke-dasharray": "4 4" });
+  for (const se of series) {
+    mk("path", { d: path(se.vals), fill: "none", stroke: se.it.c, "stroke-width": 2.5, "stroke-linejoin": "round", "stroke-linecap": "round" });
+    se.vals.forEach((v, i) => {
+      const isLast = i === se.vals.length - 1;
+      const c = mk("circle", { cx: x(i), cy: y(v), r: isLast ? 4.5 : 3, fill: isLast ? se.it.c : "var(--surface)", stroke: se.it.c, "stroke-width": 2 });
+      const tt = document.createElementNS(NS, "title");
+      tt.textContent = se.it.k + "　" + B[i].label + "：NT$" + fmt(v);
+      c.appendChild(tt);
+    });
+  }
+  const box = $("chart"); box.textContent = ""; box.appendChild(svg);
 }
 function niceStep(v) { const p = Math.pow(10, Math.floor(Math.log10(v || 1))); const n = v / p; return (n <= 1 ? 1 : n <= 2 ? 2 : n <= 5 ? 5 : 10) * p; }
 function short(v) { return v >= 1e4 ? (v / 1e4).toLocaleString("zh-TW", { maximumFractionDigits: 1 }) + "萬" : fmt(v); }
@@ -474,152 +473,152 @@ function short(v) { return v >= 1e4 ? (v / 1e4).toLocaleString("zh-TW", { maximu
 const serial = (s) => { const [y, m, d] = s.split("-").map(Number); return (Date.UTC(y, m - 1, d) - Date.UTC(1899, 11, 30)) / 864e5; };
 const N = "#,##0";
 function buildWorkbook() {
-const XL = window.XLSX, wb = XL.utils.book_new();
-const rows = [...state.rows].sort((a, b) => a.日期.localeCompare(b.日期));
+  const XL = window.XLSX, wb = XL.utils.book_new();
+  const rows = [...state.rows].sort((a, b) => a.日期.localeCompare(b.日期));
 
-// 明細
-const ws = XL.utils.aoa_to_sheet([["日期", "品項", "數量", "購買人", "獎金", "收款金額", "週起始日", "月份"]]);
-rows.forEach((r, i) => {
-const R = i + 1;
-ws[XL.utils.encode_cell({ r: R, c: 0 })] = { t: "n", v: serial(r.日期), z: "yyyy-mm-dd" };
-ws[XL.utils.encode_cell({ r: R, c: 1 })] = { t: "s", v: r.品項 || "" };
-ws[XL.utils.encode_cell({ r: R, c: 2 })] = { t: "n", v: Number(r.數量) || 0 };
-ws[XL.utils.encode_cell({ r: R, c: 3 })] = { t: "s", v: r.購買人 || "" };
-ws[XL.utils.encode_cell({ r: R, c: 4 })] = { t: "n", v: Number(r.獎金) || 0, z: N };
-ws[XL.utils.encode_cell({ r: R, c: 5 })] = { t: "n", v: Number(r.收款金額) || 0, z: N };
-ws[XL.utils.encode_cell({ r: R, c: 6 })] = { t: "n", v: serial(weekStart(r.日期)), f: "A" + (R + 1) + "-WEEKDAY(A" + (R + 1) + ",3)", z: "yyyy-mm-dd" };
-ws[XL.utils.encode_cell({ r: R, c: 7 })] = { t: "s", v: r.日期.slice(0, 7), f: 'TEXT(A' + (R + 1) + ',"yyyy-mm")' };
-});
-ws["!ref"] = "A1:H" + (rows.length + 1);
-ws["!cols"] = [{ wch: 12 }, { wch: 10 }, { wch: 7 }, { wch: 18 }, { wch: 12 }, { wch: 12 }, { wch: 12 }, { wch: 9 }];
-if (rows.length) ws["!autofilter"] = { ref: ws["!ref"] };
-XL.utils.book_append_sheet(wb, ws, "明細");
+  // 明細
+  const ws = XL.utils.aoa_to_sheet([["日期", "品項", "數量", "購買人", "獎金", "收款金額", "週起始日", "月份"]]);
+  rows.forEach((r, i) => {
+    const R = i + 1;
+    ws[XL.utils.encode_cell({ r: R, c: 0 })] = { t: "n", v: serial(r.日期), z: "yyyy-mm-dd" };
+    ws[XL.utils.encode_cell({ r: R, c: 1 })] = { t: "s", v: r.品項 || "" };
+    ws[XL.utils.encode_cell({ r: R, c: 2 })] = { t: "n", v: Number(r.數量) || 0 };
+    ws[XL.utils.encode_cell({ r: R, c: 3 })] = { t: "s", v: r.購買人 || "" };
+    ws[XL.utils.encode_cell({ r: R, c: 4 })] = { t: "n", v: Number(r.獎金) || 0, z: N };
+    ws[XL.utils.encode_cell({ r: R, c: 5 })] = { t: "n", v: Number(r.收款金額) || 0, z: N };
+    ws[XL.utils.encode_cell({ r: R, c: 6 })] = { t: "n", v: serial(weekStart(r.日期)), f: "A" + (R + 1) + "-WEEKDAY(A" + (R + 1) + ",3)", z: "yyyy-mm-dd" };
+    ws[XL.utils.encode_cell({ r: R, c: 7 })] = { t: "s", v: r.日期.slice(0, 7), f: 'TEXT(A' + (R + 1) + ',"yyyy-mm")' };
+  });
+  ws["!ref"] = "A1:H" + (rows.length + 1);
+  ws["!cols"] = [{ wch: 12 }, { wch: 10 }, { wch: 7 }, { wch: 18 }, { wch: 12 }, { wch: 12 }, { wch: 12 }, { wch: 9 }];
+  if (rows.length) ws["!autofilter"] = { ref: ws["!ref"] };
+  XL.utils.book_append_sheet(wb, ws, "明細");
 
-const itemCols = ["C", "D", "E"];
+  const itemCols = ["C", "D", "E"];
 
-// 週統計
-const weeks = [...new Set(rows.map(r => weekStart(r.日期)))].sort();
-const wk = XL.utils.aoa_to_sheet([["週起始日", "週結束日", ...ITEMS.map(i => i.k), "合計"]]);
-weeks.forEach((w, i) => {
-const R = i + 2;
-const rs = rows.filter(r => weekStart(r.日期) === w);
-wk["A" + R] = { t: "n", v: serial(w), z: "yyyy-mm-dd" };
-wk["B" + R] = { t: "n", v: serial(w) + 6, f: "A" + R + "+6", z: "yyyy-mm-dd" };
-ITEMS.forEach((it, j) => {
-wk[itemCols[j] + R] = { t: "n", v: sum(rs.filter(r => r.品項 === it.k)), f: 'SUMIFS(明細!$E:$E,明細!$G:$G,$A' + R + ',明細!$B:$B,' + itemCols[j] + '$1)', z: N };
-});
-wk["F" + R] = { t: "n", v: sum(rs), f: "SUM(C" + R + ":E" + R + ")", z: N };
-});
-totalRow(wk, weeks.length, ["C", "D", "E", "F"], "A");
-wk["!ref"] = "A1:F" + (weeks.length + 2);
-wk["!cols"] = [{ wch: 12 }, { wch: 12 }, { wch: 12 }, { wch: 12 }, { wch: 12 }, { wch: 12 }];
-XL.utils.book_append_sheet(wb, wk, "週統計");
+  // 週統計
+  const weeks = [...new Set(rows.map(r => weekStart(r.日期)))].sort();
+  const wk = XL.utils.aoa_to_sheet([["週起始日", "週結束日", ...ITEMS.map(i => i.k), "合計"]]);
+  weeks.forEach((w, i) => {
+    const R = i + 2;
+    const rs = rows.filter(r => weekStart(r.日期) === w);
+    wk["A" + R] = { t: "n", v: serial(w), z: "yyyy-mm-dd" };
+    wk["B" + R] = { t: "n", v: serial(w) + 6, f: "A" + R + "+6", z: "yyyy-mm-dd" };
+    ITEMS.forEach((it, j) => {
+      wk[itemCols[j] + R] = { t: "n", v: sum(rs.filter(r => r.品項 === it.k)), f: 'SUMIFS(明細!$E:$E,明細!$G:$G,$A' + R + ',明細!$B:$B,' + itemCols[j] + '$1)', z: N };
+    });
+    wk["F" + R] = { t: "n", v: sum(rs), f: "SUM(C" + R + ":E" + R + ")", z: N };
+  });
+  totalRow(wk, weeks.length, ["C", "D", "E", "F"], "A");
+  wk["!ref"] = "A1:F" + (weeks.length + 2);
+  wk["!cols"] = [{ wch: 12 }, { wch: 12 }, { wch: 12 }, { wch: 12 }, { wch: 12 }, { wch: 12 }];
+  XL.utils.book_append_sheet(wb, wk, "週統計");
 
-// 月統計
-const months = [...new Set(rows.map(r => r.日期.slice(0, 7)))].sort();
-const mCols = ["B", "C", "D"];
-const mo = XL.utils.aoa_to_sheet([["月份", ...ITEMS.map(i => i.k), "合計", "數量合計"]]);
-months.forEach((m, i) => {
-const R = i + 2;
-const rs = rows.filter(r => r.日期.startsWith(m));
-mo["A" + R] = { t: "s", v: m };
-ITEMS.forEach((it, j) => {
-mo[mCols[j] + R] = { t: "n", v: sum(rs.filter(r => r.品項 === it.k)), f: 'SUMIFS(明細!$E:$E,明細!$H:$H,$A' + R + ',明細!$B:$B,' + mCols[j] + '$1)', z: N };
-});
-mo["E" + R] = { t: "n", v: sum(rs), f: "SUM(B" + R + ":D" + R + ")", z: N };
-mo["F" + R] = { t: "n", v: sum(rs, "數量"), f: "SUMIFS(明細!$C:$C,明細!$H:$H,$A" + R + ")" };
-});
-totalRow(mo, months.length, ["B", "C", "D", "E", "F"], "A");
-mo["!ref"] = "A1:F" + (months.length + 2);
-mo["!cols"] = [{ wch: 10 }, { wch: 12 }, { wch: 12 }, { wch: 12 }, { wch: 12 }, { wch: 10 }];
-XL.utils.book_append_sheet(wb, mo, "月統計");
+  // 月統計
+  const months = [...new Set(rows.map(r => r.日期.slice(0, 7)))].sort();
+  const mCols = ["B", "C", "D"];
+  const mo = XL.utils.aoa_to_sheet([["月份", ...ITEMS.map(i => i.k), "合計", "數量合計"]]);
+  months.forEach((m, i) => {
+    const R = i + 2;
+    const rs = rows.filter(r => r.日期.startsWith(m));
+    mo["A" + R] = { t: "s", v: m };
+    ITEMS.forEach((it, j) => {
+      mo[mCols[j] + R] = { t: "n", v: sum(rs.filter(r => r.品項 === it.k)), f: 'SUMIFS(明細!$E:$E,明細!$H:$H,$A' + R + ',明細!$B:$B,' + mCols[j] + '$1)', z: N };
+    });
+    mo["E" + R] = { t: "n", v: sum(rs), f: "SUM(B" + R + ":D" + R + ")", z: N };
+    mo["F" + R] = { t: "n", v: sum(rs, "數量"), f: "SUMIFS(明細!$C:$C,明細!$H:$H,$A" + R + ")" };
+  });
+  totalRow(mo, months.length, ["B", "C", "D", "E", "F"], "A");
+  mo["!ref"] = "A1:F" + (months.length + 2);
+  mo["!cols"] = [{ wch: 10 }, { wch: 12 }, { wch: 12 }, { wch: 12 }, { wch: 12 }, { wch: 10 }];
+  XL.utils.book_append_sheet(wb, mo, "月統計");
 
-// 品項統計
-const it = XL.utils.aoa_to_sheet([["品項", "數量合計", "獎金合計", "獎金佔比", "筆數"]]);
-const all = sum(rows) || 1;
-ITEMS.forEach((x, i) => {
-const R = i + 2;
-const rs = rows.filter(r => r.品項 === x.k);
-it["A" + R] = { t: "s", v: x.k };
-it["B" + R] = { t: "n", v: sum(rs, "數量"), f: "SUMIFS(明細!$C:$C,明細!$B:$B,$A" + R + ")" };
-it["C" + R] = { t: "n", v: sum(rs), f: "SUMIFS(明細!$E:$E,明細!$B:$B,$A" + R + ")", z: N };
-it["D" + R] = { t: "n", v: sum(rs) / all, f: "IF($C$5=0,0,C" + R + "/$C$5)", z: "0.0%" };
-it["E" + R] = { t: "n", v: rs.length, f: "COUNTIFS(明細!$B:$B,$A" + R + ")" };
-});
-it["A5"] = { t: "s", v: "合計" };
-it["B5"] = { t: "n", v: sum(rows, "數量"), f: "SUM(B2:B4)" };
-it["C5"] = { t: "n", v: sum(rows), f: "SUM(C2:C4)", z: N };
-it["D5"] = { t: "n", v: rows.length ? 1 : 0, f: "SUM(D2:D4)", z: "0.0%" };
-it["E5"] = { t: "n", v: rows.length, f: "SUM(E2:E4)" };
-it["!ref"] = "A1:E5";
-it["!cols"] = [{ wch: 10 }, { wch: 10 }, { wch: 12 }, { wch: 10 }, { wch: 7 }];
-XL.utils.book_append_sheet(wb, it, "品項統計");
+  // 品項統計
+  const it = XL.utils.aoa_to_sheet([["品項", "數量合計", "獎金合計", "獎金佔比", "筆數"]]);
+  const all = sum(rows) || 1;
+  ITEMS.forEach((x, i) => {
+    const R = i + 2;
+    const rs = rows.filter(r => r.品項 === x.k);
+    it["A" + R] = { t: "s", v: x.k };
+    it["B" + R] = { t: "n", v: sum(rs, "數量"), f: "SUMIFS(明細!$C:$C,明細!$B:$B,$A" + R + ")" };
+    it["C" + R] = { t: "n", v: sum(rs), f: "SUMIFS(明細!$E:$E,明細!$B:$B,$A" + R + ")", z: N };
+    it["D" + R] = { t: "n", v: sum(rs) / all, f: "IF($C$5=0,0,C" + R + "/$C$5)", z: "0.0%" };
+    it["E" + R] = { t: "n", v: rs.length, f: "COUNTIFS(明細!$B:$B,$A" + R + ")" };
+  });
+  it["A5"] = { t: "s", v: "合計" };
+  it["B5"] = { t: "n", v: sum(rows, "數量"), f: "SUM(B2:B4)" };
+  it["C5"] = { t: "n", v: sum(rows), f: "SUM(C2:C4)", z: N };
+  it["D5"] = { t: "n", v: rows.length ? 1 : 0, f: "SUM(D2:D4)", z: "0.0%" };
+  it["E5"] = { t: "n", v: rows.length, f: "SUM(E2:E4)" };
+  it["!ref"] = "A1:E5";
+  it["!cols"] = [{ wch: 10 }, { wch: 10 }, { wch: 12 }, { wch: 10 }, { wch: 7 }];
+  XL.utils.book_append_sheet(wb, it, "品項統計");
 
-return { wb, count: rows.length };
+  return { wb, count: rows.length };
 }
 function totalRow(ws, n, cols, labelCol) {
-const R = n + 2; if (!n) return;
-ws[labelCol + R] = { t: "s", v: "合計" };
-for (const c of cols) {
-let v = 0; for (let r = 2; r < R; r++) v += ws[c + r]?.v || 0;
-ws[c + R] = { t: "n", v, f: "SUM(" + c + "2:" + c + (R - 1) + ")", z: N };
-}
+  const R = n + 2; if (!n) return;
+  ws[labelCol + R] = { t: "s", v: "合計" };
+  for (const c of cols) {
+    let v = 0; for (let r = 2; r < R; r++) v += ws[c + r]?.v || 0;
+    ws[c + R] = { t: "n", v, f: "SUM(" + c + "2:" + c + (R - 1) + ")", z: N };
+  }
 }
 $("exportBtn").addEventListener("click", () => {
-if (!window.XLSX) return setXlMsg("Excel 元件沒有載入，請重新整理頁面", true);
-if (!state.rows.length) return setXlMsg("還沒有可匯出的紀錄", true);
-const { wb, count } = buildWorkbook();
-XLSX.writeFile(wb, "收入表_" + today() + ".xlsx");
-setXlMsg("已匯出 " + count + " 筆");
+  if (!window.XLSX) return setXlMsg("Excel 元件沒有載入，請重新整理頁面", true);
+  if (!state.rows.length) return setXlMsg("還沒有可匯出的紀錄", true);
+  const { wb, count } = buildWorkbook();
+  XLSX.writeFile(wb, "收入表_" + today() + ".xlsx");
+  setXlMsg("已匯出 " + count + " 筆");
 });
 
 /* ---------- 記一筆 ---------- */
 $("saveBtn").addEventListener("click", async () => {
-const date = $("date").value;
-const item = $("item").value;
-const qty = Number($("qty").value);
-const buyer = $("buyer").value.trim();
-const amount = Number($("amount").value);
-const received = Number($("received").value) || 0;
+  const date = $("date").value;
+  const item = $("item").value;
+  const qty = Number($("qty").value);
+  const buyer = $("buyer").value.trim();
+  const amount = Number($("amount").value);
+  const received = Number($("received").value) || 0;
 
-if (!date) return setMsg("請選擇日期", true);
-if (!(qty > 0)) return setMsg("數量要大於 0", true);
-if (!buyer) return setMsg("請填寫購買人", true);
-if (!(amount > 0)) return setMsg("請輸入獎金", true);
-if (received < 0) return setMsg("收款金額不能是負數", true);
+  if (!date) return setMsg("請選擇日期", true);
+  if (!(qty > 0)) return setMsg("數量要大於 0", true);
+  if (!buyer) return setMsg("請填寫購買人", true);
+  if (!(amount > 0)) return setMsg("請輸入獎金", true);
+  if (received < 0) return setMsg("收款金額不能是負數", true);
 
-$("saveBtn").disabled = true;
-const editing = !!state.editId;
-setMsg(editing ? "更新中…" : "送出中…");
-try {
-const payload = editing
-? { action: "update", id: state.editId, date, item, qty, buyer, bonus: amount, received }
-: { action: "add", date, item, qty, buyer, bonus: amount, received };
-const res = await fetch(API_URL, {
-method: "POST",
-headers: { "Content-Type": "text/plain;charset=utf-8" },
-body: JSON.stringify(payload)
-});
-const data = await res.json();
-if (data.status === "ok") {
-if (editing) {
-setMsg("已更新！");
-cancelEdit();
-} else {
-setMsg("已新增！");
-$("buyer").value = "";
-$("amount").value = "";
-$("received").value = "";
-}
-loadList();
-} else {
-setMsg((editing ? "更新失敗：" : "儲存失敗：") + (data.message || "未知錯誤"), true);
-}
-} catch (err) {
-setMsg("連線失敗，請稍後再試。", true);
-} finally {
-$("saveBtn").disabled = false;
-}
+  $("saveBtn").disabled = true;
+  const editing = !!state.editId;
+  setMsg(editing ? "更新中…" : "送出中…");
+  try {
+    const payload = editing
+      ? { action: "update", id: state.editId, date, item, qty, buyer, bonus: amount, received }
+      : { action: "add", date, item, qty, buyer, bonus: amount, received };
+    const res = await fetch(API_URL, {
+      method: "POST",
+      headers: { "Content-Type": "text/plain;charset=utf-8" },
+      body: JSON.stringify(payload)
+    });
+    const data = await res.json();
+    if (data.status === "ok") {
+      if (editing) {
+        setMsg("已更新！");
+        cancelEdit();
+      } else {
+        setMsg("已新增！");
+        $("buyer").value = "";
+        $("amount").value = "";
+        $("received").value = "";
+      }
+      loadList();
+    } else {
+      setMsg((editing ? "更新失敗：" : "儲存失敗：") + (data.message || "未知錯誤"), true);
+    }
+  } catch (err) {
+    setMsg("連線失敗，請稍後再試。", true);
+  } finally {
+    $("saveBtn").disabled = false;
+  }
 });
 
 loadList();
