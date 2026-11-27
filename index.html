@@ -28,6 +28,11 @@
   button.ghost{background:var(--bg);color:var(--ink);border:1px solid var(--line)}
   button:disabled{opacity:.6;cursor:default}
   .icon-btn{background:var(--bg);color:var(--ink);border:1px solid var(--line);width:34px;height:34px;padding:0;border-radius:8px}
+  .row-actions{display:flex;gap:4px}
+  .row-actions button{padding:4px 8px;font-size:.78rem;font-weight:500;border-radius:6px}
+  .row-actions button.edit{background:var(--bg);color:var(--ink);border:1px solid var(--line)}
+  .row-actions button.del{background:var(--bg);color:var(--warn);border:1px solid var(--line)}
+  .row-actions button.del.confirm{background:var(--warn);color:#fff;border-color:var(--warn)}
   #msg,#xlMsg{font-size:.85rem;min-height:1.2em;color:var(--muted)}
   #msg.err,#xlMsg.err{color:var(--warn)}
   table{width:100%;border-collapse:collapse;font-size:.86rem}
@@ -78,7 +83,10 @@
       <label>購買人<input type="text" id="buyer" placeholder="姓名或公司"></label>
     </div>
     <label>金額<input type="number" id="amount" min="0" placeholder="0"></label>
-    <button id="saveBtn">新增</button>
+    <div style="display:flex;gap:8px">
+      <button id="saveBtn">新增</button>
+      <button id="cancelEditBtn" class="ghost" style="display:none">取消編輯</button>
+    </div>
     <div id="msg"></div>
   </div>
 
@@ -147,7 +155,7 @@ const md = (s) => Number(s.slice(5, 7)) + "/" + Number(s.slice(8));
 const fmt = (n) => Math.round(Number(n) || 0).toLocaleString("zh-TW");
 const sum = (rs, f = "金額") => rs.reduce((s, r) => s + (Number(r[f]) || 0), 0);
 
-const state = { rows: [], month: today().slice(0, 7), chartUnit: "month" };
+const state = { rows: [], month: today().slice(0, 7), chartUnit: "month", editId: null };
 
 $("date").value = today();
 
@@ -183,12 +191,84 @@ function renderList() {
     return;
   }
   const sorted = [...state.rows].sort((a, b) => String(b.日期).localeCompare(String(a.日期)));
-  let html = "<table><tr><th>日期</th><th>品項</th><th class=\"num\">數量</th><th>購買人</th><th class=\"num\">金額</th></tr>";
+  let html = "<table><tr><th>日期</th><th>品項</th><th class=\"num\">數量</th><th>購買人</th><th class=\"num\">金額</th><th></th></tr>";
   for (const r of sorted) {
-    html += `<tr><td>${esc(r.日期)}</td><td>${esc(r.品項)}</td><td class="num">${esc(r.數量)}</td><td>${esc(r.購買人)}</td><td class="num">${fmt(r.金額)}</td></tr>`;
+    html += `<tr><td>${esc(r.日期)}</td><td>${esc(r.品項)}</td><td class="num">${esc(r.數量)}</td><td>${esc(r.購買人)}</td><td class="num">${fmt(r.金額)}</td><td><div class="row-actions"><button class="edit" data-edit="${esc(r.ID)}">編輯</button><button class="del" data-del="${esc(r.ID)}">刪除</button></div></td></tr>`;
   }
   html += "</table>";
   box.innerHTML = html;
+
+  box.querySelectorAll("[data-edit]").forEach(btn => {
+    btn.addEventListener("click", () => startEdit(btn.dataset.edit));
+  });
+  box.querySelectorAll("[data-del]").forEach(btn => {
+    btn.addEventListener("click", () => handleDeleteClick(btn));
+  });
+}
+
+function startEdit(id) {
+  const r = state.rows.find(x => String(x.ID) === String(id));
+  if (!r) return;
+  state.editId = id;
+  $("date").value = r.日期;
+  $("item").value = r.品項;
+  $("qty").value = r.數量;
+  $("buyer").value = r.購買人;
+  $("amount").value = r.金額;
+  $("saveBtn").textContent = "更新";
+  $("cancelEditBtn").style.display = "";
+  setMsg("編輯中：改完按「更新」送出，或按「取消編輯」放棄。");
+  $("saveBtn").scrollIntoView({ behavior: "smooth", block: "center" });
+}
+
+function cancelEdit() {
+  state.editId = null;
+  $("date").value = today();
+  $("item").selectedIndex = 0;
+  $("qty").value = 1;
+  $("buyer").value = "";
+  $("amount").value = "";
+  $("saveBtn").textContent = "新增";
+  $("cancelEditBtn").style.display = "none";
+  setMsg("");
+}
+$("cancelEditBtn").addEventListener("click", cancelEdit);
+
+async function handleDeleteClick(btn) {
+  if (!btn.classList.contains("confirm")) {
+    box_resetConfirm();
+    btn.classList.add("confirm");
+    btn.textContent = "確定刪除？";
+    return;
+  }
+  const id = btn.dataset.del;
+  btn.disabled = true;
+  btn.textContent = "刪除中…";
+  try {
+    const res = await fetch(API_URL, {
+      method: "POST",
+      headers: { "Content-Type": "text/plain;charset=utf-8" },
+      body: JSON.stringify({ action: "delete", id })
+    });
+    const data = await res.json();
+    if (data.status === "ok") {
+      if (state.editId === id) cancelEdit();
+      loadList();
+    } else {
+      setMsg("刪除失敗：" + (data.message || "未知錯誤"), true);
+      btn.disabled = false;
+      btn.textContent = "刪除";
+      btn.classList.remove("confirm");
+    }
+  } catch (err) {
+    setMsg("連線失敗，請稍後再試。", true);
+    btn.disabled = false;
+    btn.textContent = "刪除";
+    btn.classList.remove("confirm");
+  }
+}
+function box_resetConfirm() {
+  $("list").querySelectorAll("button.del.confirm").forEach(b => { b.classList.remove("confirm"); b.textContent = "刪除"; });
 }
 
 function esc(v) {
@@ -221,9 +301,11 @@ function renderStats() {
   $("sQty").textContent = fmt(sum(mine, "數量"));
   $("sCnt").textContent = mine.length;
 
+  const cols = ["", ...ITEMS.map(i => i.k), "合計"];
+
   // 週統計
   const wt = $("weekTbl"); wt.textContent = "";
-  headRow(wt, [{ label: "週（一～日）" }, ...ITEMS.map(it => ({ label: it.k, num: true })), { label: "合計", num: true }]);
+  headRow(wt, [{ label: "週（一～日）" }, ...ITEMS.map(() => ({ label: "", num: true })).map((_, i) => ({ label: ITEMS[i].k, num: true })), { label: "合計", num: true }]);
   const first = state.month + "-01";
   const lastD = new Date(Number(y), Number(m), 0);
   const last = ymd(lastD);
@@ -429,21 +511,30 @@ $("saveBtn").addEventListener("click", async () => {
   if (!(amount > 0)) return setMsg("請輸入金額", true);
 
   $("saveBtn").disabled = true;
-  setMsg("送出中…");
+  const editing = !!state.editId;
+  setMsg(editing ? "更新中…" : "送出中…");
   try {
+    const payload = editing
+      ? { action: "update", id: state.editId, date, item, qty, buyer, amount }
+      : { action: "add", date, item, qty, buyer, amount };
     const res = await fetch(API_URL, {
       method: "POST",
       headers: { "Content-Type": "text/plain;charset=utf-8" },
-      body: JSON.stringify({ date, item, qty, buyer, amount })
+      body: JSON.stringify(payload)
     });
     const data = await res.json();
     if (data.status === "ok") {
-      setMsg("已新增！");
-      $("buyer").value = "";
-      $("amount").value = "";
+      if (editing) {
+        setMsg("已更新！");
+        cancelEdit();
+      } else {
+        setMsg("已新增！");
+        $("buyer").value = "";
+        $("amount").value = "";
+      }
       loadList();
     } else {
-      setMsg("儲存失敗：" + (data.message || "未知錯誤"), true);
+      setMsg((editing ? "更新失敗：" : "儲存失敗：") + (data.message || "未知錯誤"), true);
     }
   } catch (err) {
     setMsg("連線失敗，請稍後再試。", true);
