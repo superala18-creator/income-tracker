@@ -17,14 +17,20 @@
     --ease:cubic-bezier(.22,1,.36,1);
   }
   @media (prefers-color-scheme: dark){
-    :root{ --bg:#101514; --surface:#1a2120; --surface2:#202826; --ink:#eaf1ee; --muted:#93a39d; --line:#2a3432;
+    :root:not([data-theme="light"]){ --bg:#101514; --surface:#1a2120; --surface2:#202826; --ink:#eaf1ee; --muted:#93a39d; --line:#2a3432;
       --accent:#4fd1a5; --accent2:#3bbd91; --accent-soft:#17352c; --warn:#ff9478; --warn-soft:#3a211c;
       --c-ha:#6bb0f2; --c-is:#f0ad53; --c-spc:#b592ef; color-scheme: dark;
       --shadow:0 1px 2px rgba(0,0,0,.3), 0 10px 24px -10px rgba(0,0,0,.55);
       --shadow-sm:0 1px 3px rgba(0,0,0,.35);
     }
   }
-  button{font:inherit;cursor:pointer;border:0;border-radius:10px;padding:11px 18px;background:var(--accent);color:#fff;font-weight:700;transition:transform .12s var(--ease), box-shadow .12s var(--ease), background .15s var(--ease), opacity .12s var(--ease)}
+  :root[data-theme="dark"]{ --bg:#101514; --surface:#1a2120; --surface2:#202826; --ink:#eaf1ee; --muted:#93a39d; --line:#2a3432;
+    --accent:#4fd1a5; --accent2:#3bbd91; --accent-soft:#17352c; --warn:#ff9478; --warn-soft:#3a211c;
+    --c-ha:#6bb0f2; --c-is:#f0ad53; --c-spc:#b592ef; color-scheme: dark;
+    --shadow:0 1px 2px rgba(0,0,0,.3), 0 10px 24px -10px rgba(0,0,0,.55);
+    --shadow-sm:0 1px 3px rgba(0,0,0,.35);
+  }
+  *{box-sizing:border-box}
   body{margin:0;background:var(--bg);color:var(--ink);font-family:"Noto Sans TC",-apple-system,"PingFang TC","Microsoft JhengHei",sans-serif;padding:16px 16px 48px;-webkit-font-smoothing:antialiased;}
   .wrap{max-width:720px;margin:0 auto;display:flex;flex-direction:column;gap:16px}
   h1{font-size:1.3rem;margin:4px 0 0;font-weight:900;letter-spacing:.01em;display:flex;align-items:center;gap:8px}
@@ -40,7 +46,7 @@
   .row{display:grid;grid-template-columns:1fr 1fr;gap:10px;min-width:0}
   .row label{min-width:0}
   .row input{min-width:0;width:100%}
-  button{font:inherit;cursor:pointer;border:0;border-radius:10px;padding:11px 18px;background:var(--accent);color:var(--accent-ink);font-weight:700;transition:transform .12s var(--ease), box-shadow .12s var(--ease), background .15s var(--ease), opacity .12s var(--ease)}
+  button{font:inherit;cursor:pointer;border:0;border-radius:10px;padding:11px 18px;background:var(--accent);color:#fff;font-weight:700;transition:transform .12s var(--ease), box-shadow .12s var(--ease), background .15s var(--ease), opacity .12s var(--ease)}
   button:hover{background:var(--accent2)}
   button:active{transform:scale(.96)}
   button.ghost{background:var(--surface2);color:var(--ink);border:1px solid var(--line)}
@@ -112,9 +118,12 @@
 </head>
 <body>
 <div class="wrap">
-  <div>
-    <h1>💰 收入表</h1>
-    <p class="sub">這個頁面不經過 Claude，直接用 <span class="badge">fetch</span> 呼叫 Google Apps Script，讀寫同一份 Google 試算表。</p>
+  <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:10px">
+    <div>
+      <h1>💰 收入表</h1>
+      <p class="sub">這個頁面不經過 Claude，直接用 <span class="badge">fetch</span> 呼叫 Google Apps Script，讀寫同一份 Google 試算表。</p>
+    </div>
+    <button type="button" id="themeToggle" class="icon-btn" style="flex:none" aria-label="切換深色/淺色模式"></button>
   </div>
 
   <div class="card">
@@ -187,7 +196,8 @@
     <div id="list"><div class="empty"><span class="spinner"></span>讀取中…</div></div>
   </div>
 </div>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
 <script>
 // 換成你自己部署的 Apps Script 網頁應用程式網址
 const API_URL = "https://script.google.com/macros/s/AKfycby24m-KIIzyja1Po_B_APBoDFQglmM0iXsLHeEn21hKpJCZsMis2lPvfPLxsX3ePnNR5g/exec";
@@ -198,6 +208,29 @@ const ITEMS = [
 ];
 
 const $ = (id) => document.getElementById(id);
+
+/* ---------- 深色/淺色模式 ---------- */
+const THEME_KEY = "income-webapp-theme";
+function effectiveTheme() {
+  const saved = localStorage.getItem(THEME_KEY);
+  if (saved === "light" || saved === "dark") return saved;
+  return matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light";
+}
+function applyTheme() {
+  const saved = localStorage.getItem(THEME_KEY);
+  if (saved === "light" || saved === "dark") {
+    document.documentElement.setAttribute("data-theme", saved);
+  } else {
+    document.documentElement.removeAttribute("data-theme");
+  }
+  $("themeToggle").textContent = effectiveTheme() === "dark" ? "☀️" : "🌙";
+}
+$("themeToggle").addEventListener("click", () => {
+  localStorage.setItem(THEME_KEY, effectiveTheme() === "dark" ? "light" : "dark");
+  applyTheme();
+});
+applyTheme();
+
 const pad = (n) => String(n).padStart(2, "0");
 const today = () => { const d = new Date(); return d.getFullYear() + "-" + pad(d.getMonth() + 1) + "-" + pad(d.getDate()); };
 const parseDate = (s) => { const [y, m, d] = s.split("-").map(Number); return new Date(y, m - 1, d); };
@@ -365,7 +398,8 @@ $("prevM").addEventListener("click", () => shiftMonth(-1));
 $("nextM").addEventListener("click", () => shiftMonth(1));
 $("cWeek").addEventListener("click", () => { state.chartUnit = "week"; renderChart(); });
 $("cMonth").addEventListener("click", () => { state.chartUnit = "month"; renderChart(); });
-function renderStats() {
+
+  function renderStats() {
   const [y, m] = state.month.split("-");
   $("monthLabel").textContent = y + " 年 " + Number(m) + " 月";
   const mine = state.rows.filter(r => r.日期.startsWith(state.month));
@@ -572,7 +606,7 @@ $("exportBtn").addEventListener("click", () => {
   setXlMsg("已匯出 " + count + " 筆");
 });
 
-/* ---------- 記一筆 ---------- */
+  /* ---------- 記一筆 ---------- */
 $("saveBtn").addEventListener("click", async () => {
   const date = $("date").value;
   const item = $("item").value;
