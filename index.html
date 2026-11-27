@@ -4,72 +4,121 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>收入表（獨立網頁版）</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;500;700;900&display=swap" rel="stylesheet">
 <style>
   :root{
-    --bg:#f3f5f4; --surface:#ffffff; --ink:#1c2826; --muted:#5d6b68; --line:#dce3e1;
-    --accent:#1f6f5c; --accent-soft:#e2f0eb; --warn:#b3412a;
-    --c-ha:#1f6fb2; --c-is:#c27a12; --c-spc:#7b4bb8;
+    --bg:#f0f3f2; --surface:#ffffff; --surface2:#f7f9f8; --ink:#1c2826; --muted:#687873; --line:#e1e7e4;
+    --accent:#1f8f6c; --accent2:#17b88a; --accent-soft:#deefe8; --warn:#d6492f; --warn-soft:#fbe6e1;
+    --c-ha:#2e7fd1; --c-is:#d98c15; --c-spc:#8a55d6;
+    --shadow:0 1px 2px rgba(20,30,28,.04), 0 6px 20px -8px rgba(20,30,28,.12);
+    --shadow-sm:0 1px 3px rgba(20,30,28,.08);
+    --ease:cubic-bezier(.22,1,.36,1);
   }
   @media (prefers-color-scheme: dark){
-    :root{ --bg:#121816; --surface:#1a2220; --ink:#e3eae7; --muted:#94a29e; --line:#2b3633; --accent:#5cc3a5; --accent-soft:#1f3830; --warn:#f08a70;
-      --c-ha:#5aa8ec; --c-is:#e6a447; --c-spc:#b08ae6; color-scheme: dark; }
+    :root{ --bg:#101514; --surface:#1a2120; --surface2:#202826; --ink:#eaf1ee; --muted:#93a39d; --line:#2a3432;
+      --accent:#4fd1a5; --accent2:#3bbd91; --accent-soft:#17352c; --warn:#ff9478; --warn-soft:#3a211c;
+      --c-ha:#6bb0f2; --c-is:#f0ad53; --c-spc:#b592ef; color-scheme: dark;
+      --shadow:0 1px 2px rgba(0,0,0,.3), 0 10px 24px -10px rgba(0,0,0,.55);
+      --shadow-sm:0 1px 3px rgba(0,0,0,.35);
+    }
   }
   *{box-sizing:border-box}
-  body{margin:0;background:var(--bg);color:var(--ink);font-family:-apple-system,"PingFang TC","Microsoft JhengHei",sans-serif;padding:16px;}
-  .wrap{max-width:760px;margin:0 auto;display:flex;flex-direction:column;gap:20px}
-  h1{font-size:1.4rem;margin:8px 0 0}
-  h2{font-size:.92rem;margin:0;font-weight:700}
-  .sub{color:var(--muted);font-size:.85rem;margin:0 0 8px}
-  .card{background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:16px;display:flex;flex-direction:column;gap:12px}
-  label{display:flex;flex-direction:column;gap:4px;font-size:.85rem;color:var(--muted)}
-  input,select{font:inherit;padding:9px 10px;border:1px solid var(--line);border-radius:8px;background:var(--bg);color:var(--ink)}
-  .row{display:grid;grid-template-columns:1fr 1fr;gap:10px}
-  button{font:inherit;cursor:pointer;border:0;border-radius:8px;padding:10px 16px;background:var(--accent);color:#fff;font-weight:600}
-  button.ghost{background:var(--bg);color:var(--ink);border:1px solid var(--line)}
-  button:disabled{opacity:.6;cursor:default}
-  .icon-btn{background:var(--bg);color:var(--ink);border:1px solid var(--line);width:34px;height:34px;padding:0;border-radius:8px}
-  .row-actions{display:flex;gap:4px}
-  .row-actions button{padding:4px 8px;font-size:.78rem;font-weight:500;border-radius:6px}
-  .row-actions button.edit{background:var(--bg);color:var(--ink);border:1px solid var(--line)}
-  .row-actions button.del{background:var(--bg);color:var(--warn);border:1px solid var(--line)}
+  body{margin:0;background:var(--bg);color:var(--ink);font-family:"Noto Sans TC",-apple-system,"PingFang TC","Microsoft JhengHei",sans-serif;padding:16px 16px 48px;-webkit-font-smoothing:antialiased;}
+  .wrap{max-width:720px;margin:0 auto;display:flex;flex-direction:column;gap:16px}
+  h1{font-size:1.3rem;margin:4px 0 0;font-weight:900;letter-spacing:.01em;display:flex;align-items:center;gap:8px}
+  h2{font-size:.88rem;margin:0;font-weight:700;display:flex;align-items:center;gap:6px;letter-spacing:.01em}
+  h2 .ic{font-size:1rem;line-height:1}
+  .sub{color:var(--muted);font-size:.82rem;margin:2px 0 4px;line-height:1.5}
+  .card{background:var(--surface);border:1px solid var(--line);border-radius:16px;padding:18px;display:flex;flex-direction:column;gap:14px;box-shadow:var(--shadow);animation:rise .4s var(--ease) both}
+  .card-title{display:flex;align-items:center;gap:8px;font-weight:900;font-size:.98rem}
+  .card-title .ic{font-size:1.1rem}
+  label{display:flex;flex-direction:column;gap:5px;font-size:.8rem;color:var(--muted);font-weight:500}
+  input,select{font:inherit;padding:11px 12px;border:1px solid var(--line);border-radius:10px;background:var(--surface2);color:var(--ink);transition:border-color .15s var(--ease), box-shadow .15s var(--ease)}
+  input:focus,select:focus{outline:none;border-color:var(--accent);box-shadow:0 0 0 3px var(--accent-soft)}
+  .row{display:grid;grid-template-columns:1fr 1fr;gap:10px;min-width:0}
+  .row label{min-width:0}
+  .row input{min-width:0;width:100%}
+  button{font:inherit;cursor:pointer;border:0;border-radius:10px;padding:11px 18px;background:var(--accent);color:#fff;font-weight:700;transition:transform .12s var(--ease), box-shadow .12s var(--ease), background .15s var(--ease), opacity .12s var(--ease)}
+  button:hover{background:var(--accent2)}
+  button:active{transform:scale(.96)}
+  button.ghost{background:var(--surface2);color:var(--ink);border:1px solid var(--line)}
+  button.ghost:hover{background:var(--bg)}
+  button:disabled{opacity:.55;cursor:default;transform:none}
+  .icon-btn{background:var(--surface2);color:var(--ink);border:1px solid var(--line);width:36px;height:36px;padding:0;border-radius:10px;font-size:1rem}
+  .row-actions{display:flex;gap:6px}
+  .row-actions button{padding:6px 11px;font-size:.76rem;font-weight:600;border-radius:8px}
+  .row-actions button.edit{background:var(--surface2);color:var(--ink);border:1px solid var(--line)}
+  .row-actions button.del{background:var(--surface2);color:var(--warn);border:1px solid var(--line)}
   .row-actions button.del.confirm{background:var(--warn);color:#fff;border-color:var(--warn)}
-  #msg,#xlMsg{font-size:.85rem;min-height:1.2em;color:var(--muted)}
-  #msg.err,#xlMsg.err{color:var(--warn)}
-  table{width:100%;border-collapse:collapse;font-size:.86rem}
-  th,td{padding:6px 4px;border-bottom:1px solid var(--line);text-align:left;white-space:nowrap}
-  th{color:var(--muted);font-weight:500;font-size:.76rem}
+  #msg,#xlMsg{font-size:.82rem;min-height:1.2em;color:var(--muted);transition:color .15s}
+  #msg.err,#xlMsg.err{color:var(--warn);font-weight:600}
+  table{width:100%;border-collapse:collapse;font-size:.85rem}
+  th,td{padding:7px 4px;border-bottom:1px solid var(--line);text-align:left;white-space:nowrap}
+  th{color:var(--muted);font-weight:600;font-size:.72rem;letter-spacing:.02em}
   td.num,th.num{text-align:right;font-variant-numeric:tabular-nums}
-  tr.total td{font-weight:700;border-bottom:0}
-  tr.cur td:first-child{color:var(--accent);font-weight:700}
-  .tbl-wrap{overflow-x:auto}
-  .empty{color:var(--muted);text-align:center;padding:20px;font-size:.9rem;border:1px dashed var(--line);border-radius:10px}
-  .badge{display:inline-block;background:var(--accent-soft);color:var(--accent);border-radius:999px;padding:2px 8px;font-size:.78rem}
-  .month-nav{display:flex;align-items:center;gap:8px}
-  .month-nav span{font-weight:700;min-width:7em;text-align:center;font-variant-numeric:tabular-nums}
+  tr.total td{font-weight:800;border-bottom:0}
+  tr.cur{background:var(--accent-soft)}
+  tr.cur td:first-child{color:var(--accent);font-weight:800}
+  tr.cur td:first-child{border-radius:8px 0 0 8px}
+  .tbl-wrap{overflow-x:auto;-webkit-overflow-scrolling:touch}
+  .empty{color:var(--muted);text-align:center;padding:28px 16px;font-size:.88rem;border:1.5px dashed var(--line);border-radius:14px}
+  .empty .ic{display:block;font-size:1.8rem;margin-bottom:6px;opacity:.6}
+  .badge{display:inline-block;background:var(--accent-soft);color:var(--accent);border-radius:999px;padding:2px 9px;font-size:.76rem;font-weight:600}
+  .month-nav{display:flex;align-items:center;gap:10px}
+  .month-nav span{font-weight:800;min-width:7em;text-align:center;font-variant-numeric:tabular-nums;font-size:1.02rem}
   .sum{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
-  .sum div{background:var(--bg);border-radius:10px;padding:10px}
-  .sum small{display:block;color:var(--muted);font-size:.72rem}
-  .sum b{font-variant-numeric:tabular-nums;font-size:1.05rem}
+  .sum div{background:var(--surface2);border-radius:12px;padding:12px 10px;border:1px solid var(--line);transition:transform .15s var(--ease)}
+  .sum small{display:block;color:var(--muted);font-size:.7rem;font-weight:600;letter-spacing:.02em}
+  .sum b{font-variant-numeric:tabular-nums;font-size:1.12rem;display:block;margin-top:2px}
   .chart-head{display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:8px}
-  .seg{display:inline-flex;background:var(--bg);border-radius:8px;padding:3px}
-  .seg button{background:transparent;color:var(--muted);padding:5px 12px;font-size:.84rem;border-radius:6px}
-  .seg button[aria-pressed="true"]{background:var(--surface);color:var(--ink);font-weight:700}
-  .legend{display:flex;gap:12px;flex-wrap:wrap;font-size:.8rem;color:var(--muted)}
+  .seg{display:inline-flex;background:var(--surface2);border-radius:10px;padding:3px;border:1px solid var(--line)}
+  .seg button{background:transparent;color:var(--muted);padding:6px 13px;font-size:.8rem;border-radius:7px;box-shadow:none}
+  .seg button[aria-pressed="true"]{background:var(--surface);color:var(--ink);font-weight:700;box-shadow:var(--shadow-sm)}
+  .legend{display:flex;gap:14px;flex-wrap:wrap;font-size:.78rem;color:var(--muted)}
   .legend i{display:inline-block;width:12px;height:3px;border-radius:2px;margin-right:4px;vertical-align:2px}
   .legend i.dash{background:none;border-top:2px dashed var(--muted);height:0}
   svg.chart{width:100%;height:auto;display:block}
   svg.chart text{fill:var(--muted);font-size:11px}
+
+  /* 明細卡片式列表 */
+  .entries{display:flex;flex-direction:column;gap:8px}
+  .entry{display:flex;align-items:center;gap:10px;padding:10px 10px;border-radius:12px;background:var(--surface2);border:1px solid var(--line);animation:rise .35s var(--ease) both}
+  .dot{flex:none;width:10px;height:10px;border-radius:50%}
+  .entry-main{flex:1;min-width:0;display:flex;flex-direction:column;gap:2px}
+  .entry-top{display:flex;align-items:baseline;gap:8px;flex-wrap:wrap}
+  .entry-item{font-weight:700;font-size:.9rem}
+  .entry-date{color:var(--muted);font-size:.76rem;font-variant-numeric:tabular-nums}
+  .entry-sub{color:var(--muted);font-size:.78rem;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  .entry-amt{flex:none;font-weight:800;font-variant-numeric:tabular-nums;font-size:.98rem;white-space:nowrap}
+  .entry-actions{flex:none}
+
+  @keyframes rise{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:translateY(0)}}
+  @keyframes spin{to{transform:rotate(360deg)}}
+  .spinner{width:20px;height:20px;border-radius:50%;border:2.5px solid var(--line);border-top-color:var(--accent);animation:spin .7s linear infinite;margin:0 auto 8px}
+
+  @media (max-width:480px){
+    body{padding:12px 12px 40px}
+    .card{padding:14px;border-radius:14px}
+    h1{font-size:1.15rem}
+    .sum{gap:6px}
+    .sum div{padding:9px 6px}
+    .sum b{font-size:1rem}
+    .entry-sub{max-width:40vw}
+    button{padding:11px 14px}
+  }
 </style>
 </head>
 <body>
 <div class="wrap">
   <div>
-    <h1>收入表（獨立網頁版）</h1>
+    <h1>💰 收入表</h1>
     <p class="sub">這個頁面不經過 Claude，直接用 <span class="badge">fetch</span> 呼叫 Google Apps Script，讀寫同一份 Google 試算表。</p>
   </div>
 
   <div class="card">
-    <strong>記一筆</strong>
+    <div class="card-title"><span class="ic">📝</span>記一筆</div>
     <label>日期<input type="date" id="date"></label>
     <label>品項
       <select id="item">
@@ -91,6 +140,7 @@
   </div>
 
   <div class="card">
+    <div class="card-title"><span class="ic">📊</span>統計總覽</div>
     <div class="month-nav">
       <button class="icon-btn" id="prevM" aria-label="上個月">‹</button>
       <span id="monthLabel" class="num">—</span>
@@ -102,14 +152,14 @@
       <div><small>本月筆數</small><b id="sCnt">0</b></div>
     </div>
 
-    <h2>週統計金額</h2>
+    <h2><span class="ic">📅</span>週統計金額</h2>
     <div class="tbl-wrap"><table id="weekTbl"></table></div>
 
-    <h2>月統計金額（近 6 個月）</h2>
+    <h2><span class="ic">🗓️</span>月統計金額（近 6 個月）</h2>
     <div class="tbl-wrap"><table id="monthTbl"></table></div>
 
     <div class="chart-head">
-      <h2>品項金額曲線</h2>
+      <h2><span class="ic">📈</span>品項金額曲線</h2>
       <div class="seg" role="group" aria-label="曲線圖時間單位">
         <button id="cWeek" aria-pressed="false">近 12 週</button>
         <button id="cMonth" aria-pressed="true">近 12 個月</button>
@@ -120,7 +170,7 @@
   </div>
 
   <div class="card">
-    <strong>Excel</strong>
+    <div class="card-title"><span class="ic">📥</span>Excel 匯出</div>
     <p class="sub" style="margin:0">匯出的檔案含「明細」「週統計」「月統計」「品項統計」四張工作表，統計表用公式連到明細，之後在 Excel 裡改明細會自動重算。</p>
     <div style="display:flex;gap:8px;flex-wrap:wrap">
       <button id="exportBtn">匯出 Excel (.xlsx)</button>
@@ -129,8 +179,8 @@
   </div>
 
   <div class="card">
-    <strong>明細（即時從 Google 試算表讀出）</strong>
-    <div id="list"><div class="empty">讀取中…</div></div>
+    <div class="card-title"><span class="ic">📋</span>明細（即時從 Google 試算表讀出）</div>
+    <div id="list"><div class="empty"><span class="spinner"></span>讀取中…</div></div>
   </div>
 </div>
 
@@ -168,6 +218,11 @@ function setXlMsg(text, isErr) {
   $("xlMsg").className = isErr ? "err" : "";
 }
 
+function itemColor(k) {
+  const it = ITEMS.find(i => i.k === k);
+  return it ? it.c : "var(--muted)";
+}
+
 async function loadList() {
   try {
     const res = await fetch(API_URL, { method: "GET" });
@@ -175,7 +230,7 @@ async function loadList() {
     state.rows = (rows || []).filter(r => r && r.日期 && typeof r.金額 !== "undefined");
     render();
   } catch (err) {
-    $("list").innerHTML = '<div class="empty">讀取失敗，請確認網路連線或稍後再試。</div>';
+    $("list").innerHTML = '<div class="empty"><span class="ic">⚠️</span>讀取失敗，請確認網路連線或稍後再試。</div>';
   }
 }
 
@@ -187,15 +242,26 @@ function render() {
 function renderList() {
   const box = $("list");
   if (!state.rows.length) {
-    box.innerHTML = '<div class="empty">目前還沒有紀錄，記一筆看看吧。</div>';
+    box.innerHTML = '<div class="empty"><span class="ic">🧾</span>目前還沒有紀錄，記一筆看看吧。</div>';
     return;
   }
   const sorted = [...state.rows].sort((a, b) => String(b.日期).localeCompare(String(a.日期)));
-  let html = "<table><tr><th>日期</th><th>品項</th><th class=\"num\">數量</th><th>購買人</th><th class=\"num\">金額</th><th></th></tr>";
+  let html = '<div class="entries">';
   for (const r of sorted) {
-    html += `<tr><td>${esc(r.日期)}</td><td>${esc(r.品項)}</td><td class="num">${esc(r.數量)}</td><td>${esc(r.購買人)}</td><td class="num">${fmt(r.金額)}</td><td><div class="row-actions"><button class="edit" data-edit="${esc(r.ID)}">編輯</button><button class="del" data-del="${esc(r.ID)}">刪除</button></div></td></tr>`;
+    html += `<div class="entry" style="animation-delay:${Math.min(sorted.indexOf(r), 10) * 25}ms">
+      <span class="dot" style="background:${itemColor(r.品項)}"></span>
+      <div class="entry-main">
+        <div class="entry-top"><span class="entry-item">${esc(r.品項)}</span><span class="entry-date">${md(r.日期)}</span></div>
+        <div class="entry-sub">${esc(r.購買人)} · ${esc(r.數量)} 件</div>
+      </div>
+      <div class="entry-amt">NT$ ${fmt(r.金額)}</div>
+      <div class="entry-actions row-actions">
+        <button class="edit" data-edit="${esc(r.ID)}">編輯</button>
+        <button class="del" data-del="${esc(r.ID)}">刪除</button>
+      </div>
+    </div>`;
   }
-  html += "</table>";
+  html += "</div>";
   box.innerHTML = html;
 
   box.querySelectorAll("[data-edit]").forEach(btn => {
