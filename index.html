@@ -245,7 +245,10 @@ function renderList() {
     box.innerHTML = '<div class="empty"><span class="ic">🧾</span>目前還沒有紀錄，記一筆看看吧。</div>';
     return;
   }
-  const sorted = [...state.rows].sort((a, b) => String(b.日期).localeCompare(String(a.日期)));
+  const sorted = state.rows
+    .map((r, i) => ({ r, i }))
+    .sort((a, b) => String(b.r.日期).localeCompare(String(a.r.日期)) || (b.i - a.i))
+    .map(x => x.r);
   let html = '<div class="entries">';
   for (const r of sorted) {
     html += `<div class="entry" style="animation-delay:${Math.min(sorted.indexOf(r), 10) * 25}ms">
